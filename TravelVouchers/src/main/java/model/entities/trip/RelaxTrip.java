@@ -1,15 +1,17 @@
 package model.entities.trip;
 
+import static view.MessageConstants.RELAX_TYPE;
+
 /**
  * POJO class, that represents relax trips
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public class RelaxTrip extends Trip {
     private String sea;
 
     public RelaxTrip(String destination, int pricePerDay, String sea) {
-        super(destination, pricePerDay);
+        super(destination, pricePerDay, RELAX_TYPE);
         this.sea = sea;
     }
 
@@ -45,5 +47,10 @@ public class RelaxTrip extends Trip {
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
+    }
+
+    @Override
+    public void close() {
+
     }
 }

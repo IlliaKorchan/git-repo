@@ -6,16 +6,15 @@ import model.dbimitation.RelaxTripsAvailable;
 import model.dbimitation.Transport;
 
 import model.entities.UsersTrip;
-import model.entities.trip.ExcursionTrip;
 import model.entities.trip.Purchaseable;
-import model.entities.trip.RelaxTrip;
 
 import view.MessageConstants;
 import view.View;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Class, that checks input data and process trip selection
@@ -26,6 +25,7 @@ public class Controller implements MessageConstants {
     private View view;
     private ResourceBundle bundle;
     private Scanner scanner = new Scanner(System.in);
+    private List<Purchaseable>offerList = new ArrayList<>();
 
     public Controller(View view) {
         this.view = view;
@@ -35,6 +35,7 @@ public class Controller implements MessageConstants {
      * Method for starting selection process
      */
     public void chooseTrip() {
+        fillOfferList();
         setLanguage();
         typeSelect();
     }
@@ -47,14 +48,15 @@ public class Controller implements MessageConstants {
             view.printMessages(CHOOSE_LANGUAGE_MESSAGE);
             String answer = scanner.nextLine();
             if (answer.equalsIgnoreCase(POSITIVE_ANSWER)) {
-                bundle = ResourceBundle.getBundle(MESSAGE_BUNDLE_NAME, new Locale("uk", "UA"));
+                bundle = ResourceBundle.getBundle(MESSAGE_BUNDLE_NAME,
+                                                  new Locale("uk", "UA"));
                 return;
             } else if (answer.equalsIgnoreCase(NEGATIVE_ANSWER)) {
-                bundle = ResourceBundle.getBundle(MESSAGE_BUNDLE_NAME, new Locale("", ""));
+                bundle = ResourceBundle.getBundle(MESSAGE_BUNDLE_NAME,
+                                                  new Locale("", ""));
                 return;
             } else {
                 view.printMessages(INCORRECT_ANSWER_MESSAGE);
-                continue;
             }
         }
     }
@@ -63,106 +65,84 @@ public class Controller implements MessageConstants {
      * Method for choosing type of trip
      */
     public void typeSelect() {
-        view.printMessages(view.createMessage(bundle.getString(CHOOSE_TYPE_MESSAGE),
-                bundle.getString(HOW_TO_CHOOSE_MESSAGE),
-                DOUBLE_DOT),
-                view.createMessage(VARIANTS[0], DASH, bundle.getString(RELAX_TYPE)),
-                view.createMessage(VARIANTS[1], DASH, bundle.getString(EXCURSION_TYPE)),
-                view.createMessage(VARIANTS[2], DASH, bundle.getString(EXIT_MESSAGE))
-        );
+        chooseMessage(CHOOSE_TYPE_MESSAGE);
+        view.printMessages(view.createMessage(VARIANTS[0], DASH, bundle.getString(RELAX_TYPE)),
+                           view.createMessage(VARIANTS[1], DASH, bundle.getString(EXCURSION_TYPE)),
+                           view.createMessage(VARIANTS[2], DASH, bundle.getString(EXIT_MESSAGE)));
 
         int type = select(Integer.parseInt(VARIANTS[2]));
         switch (type) {
             case 1: {
-                usersOrder(getRelaxTrips());
+                filterTripsByType(RELAX_TYPE);
                 break;
             }
             case 2: {
-                usersOrder(getExcursionTrips());
+                filterTripsByType(EXCURSION_TYPE);
                 break;
             }
             case 3: {
                 exit();
             }
         }
+        order();
     }
 
     /**
-     * Method for displaying and choosing types of relax trips
-     * @return selected trip
+     * Method for choosing trip
+     * @return selectedTrip
      */
-    public RelaxTrip getRelaxTrips() {
-        chooseTripMessage();
-        RelaxTrip trip;
+    public Purchaseable tripSelect() {
+        chooseMessage(CHOOSE_TRIP_MESSAGE);
 
-        for (int i = 0; i < RelaxTripsAvailable.values().length; i++) {
-            trip = RelaxTripsAvailable.values()[i].getRelaxTrip();
-            view.printMessages(view.createMessage(VARIANTS[i], DASH, bundle.getString(trip.getDestination()),
-                                                  COMMA, trip.getPricePerDay().toString(),
-                                                  bundle.getString(PRICE_MESSAGE),
-                                                  COMMA, bundle.getString(trip.getSea()), bundle.getString(SEA)
-                                                 ));
-        }
+        IntStream.range(0, Math.min(VARIANTS.length, offerList.size()))
+                .forEach((i) ->  view.printMessages(view.createMessage(VARIANTS[i], DASH,
+                        bundle.getString(offerList.get(i).getDestination()),
+                        COMMA, (offerList.get(i).getPricePerDay()).toString(),
+                        bundle.getString(PRICE_MESSAGE))));
 
-        RelaxTrip selectedTrip = null;
-        try {
-            selectedTrip = (RelaxTrip) ((RelaxTripsAvailable.values()[select(RelaxTripsAvailable.values().length) - 1]
-                                        .getRelaxTrip()).purchase());
-        } catch (CloneNotSupportedException e) {
+        try (Purchaseable selectedTrip = offerList.get(select(offerList.size()) - 1).purchase()) {
+            return selectedTrip;
+        } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return selectedTrip;
     }
 
     /**
-     * Method for displaying and choosing types of trips with excursions
-     * @return selected trip
+     * Method for choosing type of feeding
+     * @return selected feeding
      */
-    public ExcursionTrip getExcursionTrips() {
-        chooseTripMessage();
-        ExcursionTrip trip;
+    public <T> T feedingTransportSelect(T[] toChoose, String message) {
+        chooseMessage(message);
 
-        for (int i = 0; i < ExcursionTripsAvailable.values().length; i++) {
-            trip = ExcursionTripsAvailable.values()[i].getExcursionTrip();
-            view.printMessages(view.createMessage(VARIANTS[i], DASH, bundle.getString(trip.getDestination()),
-                                                  COMMA, (trip.getPricePerDay()).toString(),
-                                                  bundle.getString(PRICE_MESSAGE)
-                                                 ));
+        IntStream.range(0, Math.min(VARIANTS.length, toChoose.length))
+                .forEach((i) ->  view.printMessages(view.createMessage(VARIANTS[i], DASH,
+                        bundle.getString(toChoose[i].toString()))));
 
-            view.printMessages(view.createMessage(bundle.getString(EXCURSION_MESSAGE), DOUBLE_DOT));
-            for (int j = 0; j < trip.getExcursions().length; j++) {
-                view.printMessages(bundle.getString(trip.getExcursions()[j]));
-            }
-        }
-
-        ExcursionTrip selectedTrip = null;
-        try {
-            selectedTrip = (ExcursionTrip) (ExcursionTripsAvailable.values()[select(ExcursionTripsAvailable.values().length) - 1]
-                    .getExcursionTrip().purchase());
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return selectedTrip;
+        return toChoose[select(toChoose.length) - 1];
     }
 
     /**
      * Method, that creates and shows users order
-     * @param  selectedTrip by user
      */
-    public void usersOrder(Purchaseable selectedTrip) {
+    public void order() {
         UsersTrip userSelection = new UsersTrip();
 
-        userSelection.setTrip(selectedTrip);
-        userSelection.setFeeding(feedingSelect());
-        userSelection.setTransport(transportSelect());
-        userSelection.setDays(daysSelect());
+        userSelection.setTrip(tripSelect());
+        userSelection.setFeeding(feedingTransportSelect(Feeding.values(), CHOOSE_FEEDING_MESSAGE));
+        userSelection.setTransport(feedingTransportSelect(Transport.values(), CHOOSE_TRANSPORT_MESSAGE));
+
+        view.printMessages(view.createMessage(bundle.getString(CHOOSE_DAYS_MESSAGE),
+                                              bundle.getString(DAYS_RANGE),
+                                              DOUBLE_DOT));
+        userSelection.setDays(select(DAYS_MAXIMUM));
 
         view.printMessages(view.createMessage(bundle.getString(USERS_ORDER_MESSAGE),
-                bundle.getString(userSelection.getTrip().getDestination())),
+                bundle.getString(userSelection.getTrip().get().getDestination())),
                 view.createMessage(bundle.getString(USERS_ORDER_FEEDING),
-                        bundle.getString(userSelection.getFeeding().getName())),
+                        bundle.getString(userSelection.getFeeding().get().getName())),
                 view.createMessage(bundle.getString(USERS_ORDER_TRANSPORT),
-                        bundle.getString(userSelection.getTransport().getName())),
+                        bundle.getString(userSelection.getTransport().get().getName())),
                 view.createMessage(bundle.getString(USERS_ORDER_FOR), userSelection.getDays().toString(),
                         bundle.getString(USERS_ORDER_DAYS)),
                 view.createMessage(bundle.getString(USERS_TOTAL_PRICE), userSelection.totalPrice(),
@@ -171,106 +151,56 @@ public class Controller implements MessageConstants {
     }
 
     /**
-     * Method for choosing type of feeding
-     * @return selected feeding
-     */
-    public Feeding feedingSelect() {
-        view.printMessages(view.createMessage(bundle.getString(CHOOSE_FEEDING_MESSAGE),
-                bundle.getString(HOW_TO_CHOOSE_MESSAGE),
-                DOUBLE_DOT));
-
-        for (int i = 0; i < Feeding.values().length; i++) {
-            view.printMessages(view.createMessage(VARIANTS[i], DASH, bundle.getString(Feeding.values()[i].getName())));
-        }
-
-        return Feeding.values()[select(Feeding.values().length) - 1];
-    }
-
-    /**
-     * Method for choosing type of transport
-     * @return selected transport
-     */
-    public Transport transportSelect() {
-        view.printMessages(view.createMessage(bundle.getString(CHOOSE_TRANSPORT_MESSAGE), bundle.getString(HOW_TO_CHOOSE_MESSAGE), DOUBLE_DOT));
-
-        for (int i = 0; i < Transport.values().length; i++) {
-            view.printMessages(view.createMessage(VARIANTS[i], DASH, bundle.getString(Transport.values()[i].getName())));
-        }
-
-        return Transport.values()[select(Transport.values().length) - 1];
-    }
-
-    /**
      * Method for checking entered variant
      * @param variantsAmount amount of allowed variants
      * @return selected variant
      */
     public int select(Integer variantsAmount) {
-        if (!variantsAmount.toString().matches(VARIANT_REGEX)) {
-            throw new ArrayIndexOutOfBoundsException();
-        } else {
-            for (; ; ) {
-                String variant = scanner.nextLine();
-                if (variant.matches(VARIANT_REGEX)) {
-                    int intVariant = Integer.parseInt(variant);
-
-                    if ((intVariant >= Integer.parseInt(VARIANTS[0])) &&
-                            (intVariant <= Integer.parseInt(VARIANTS[variantsAmount - 1]))) {
-                        return intVariant;
-                    } else {
-                        view.printMessages(view.createMessage(bundle.getString(INCORRECT_CHOOSING_MESSAGE),
-                                VARIANTS[0],
-                                bundle.getString(TO),
-                                VARIANTS[variantsAmount - 1]));
-                        continue;
-                    }
-                } else {
-                    view.printMessages(view.createMessage(bundle.getString(INCORRECT_CHOOSING_MESSAGE),
-                            VARIANTS[0],
-                            bundle.getString(TO),
-                            VARIANTS[variantsAmount - 1]));
-                    continue;
-                }
-            }
-        }
-    }
-
-    /**
-     * Method for choosing number of days in a trip
-     * @return number of days
-     */
-    public int daysSelect() {
-        for (; ; ) {
-            view.printMessages(view.createMessage(bundle.getString(CHOOSE_DAYS_MESSAGE),
-                                                  bundle.getString(DAYS_RANGE),
-                                                  DOUBLE_DOT));
-
-            String insertedValue = scanner.nextLine();
-            if (insertedValue.matches(DIGITS_REGEX)) {
-                int days = Integer.parseInt(insertedValue);
-
-                if ((days >= DAYS_MINIMUM) && (days <= DAYS_MAXIMUM)) {
-                    return days;
-                } else {
-                    view.printMessages(view.createMessage(bundle.getString(INCORRECT_DAYS_CHOOSE_MESSAGE),
-                                                          bundle.getString(DAYS_RANGE)));
-                    continue;
-                }
+        while(true) {
+            String variant = scanner.nextLine();
+            if ((variant.matches(DIGITS_REGEX)) &&
+                    (Integer.parseInt(variant) <= variantsAmount) &&
+                    (Integer.parseInt(variant) > FLOOR)) {
+                return Integer.parseInt(variant);
             } else {
-                view.printMessages(view.createMessage(bundle.getString(INCORRECT_DAYS_CHOOSE_MESSAGE),
-                                                      bundle.getString(DAYS_RANGE)));
+                view.printMessages(view.createMessage(bundle.getString(INCORRECT_CHOOSING_MESSAGE),
+                        VARIANTS[0],
+                        bundle.getString(TO),
+                        variantsAmount.toString()));
                 continue;
             }
         }
     }
 
     /**
-     * Method for displaying message and proposing to choose a type of trip
+     * Method for displaying message and proposing to choose data
      */
-    public void chooseTripMessage() {
-        view.printMessages(view.createMessage(bundle.getString(CHOOSE_TRIP_MESSAGE),
-                                              bundle.getString(HOW_TO_CHOOSE_MESSAGE),
-                                              DOUBLE_DOT));
+    public void chooseMessage(String toChoose) {
+        view.printMessages(view.createMessage(bundle.getString(toChoose),
+                bundle.getString(HOW_TO_CHOOSE_MESSAGE),
+                DOUBLE_DOT));
+    }
+
+    /**
+     * Method for filtering offerings by type
+     * @param type
+     */
+    public void filterTripsByType(String type) {
+        offerList = offerList.stream()
+                             .filter(trip -> trip.getType().equals(type))
+                             .collect(Collectors.toList());
+    }
+
+    /**
+     * Method for filling list by all of available offerings
+     */
+    public void fillOfferList() {
+        offerList = Stream.concat(Arrays.stream(RelaxTripsAvailable.values())
+                        .map(RelaxTripsAvailable::getTrip),
+                Arrays.stream(ExcursionTripsAvailable.values())
+                        .map(ExcursionTripsAvailable::getTrip))
+                .sorted(Comparator.comparing(Purchaseable::getPricePerDay))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -281,4 +211,3 @@ public class Controller implements MessageConstants {
         System.exit(0);
     }
 }
-

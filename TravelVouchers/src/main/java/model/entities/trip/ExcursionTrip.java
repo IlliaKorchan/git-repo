@@ -1,16 +1,19 @@
 package model.entities.trip;
 
+import java.util.Optional;
+import static view.MessageConstants.EXCURSION_TYPE;
+
 /**
  * POJO class, that represents trips with excursions
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public class ExcursionTrip extends Trip {
-    private String[] excursions;
+    private Optional<String[]> excursions;
 
     public ExcursionTrip(String destination, int pricePerDay, String[] excursions) {
-        super(destination, pricePerDay);
-        this.excursions = isNotNull(excursions);
+        super(destination, pricePerDay, EXCURSION_TYPE);
+        this.excursions = Optional.ofNullable(excursions);
     }
 
     public String getDestination() {
@@ -29,12 +32,12 @@ public class ExcursionTrip extends Trip {
         super.setPricePerDay(pricePerDay);
     }
 
-    public String[] getExcursions() {
+    public Optional<String[]> getExcursions() {
         return excursions;
     }
 
     public void setExcursions(String[] excursions) {
-        this.excursions = isNotNull(excursions);
+        this.excursions = Optional.ofNullable(excursions);
     }
 
     @Override
@@ -42,16 +45,6 @@ public class ExcursionTrip extends Trip {
         return (Purchaseable) this.clone();
     }
 
-    /**
-     * Method that checks if array with available excursions has null value
-     * @param listToCheck
-     * @return listToCheck not null
-     */
-    public String[] isNotNull(String[] listToCheck) {
-        if (listToCheck != null) {
-            return listToCheck;
-        } else {
-            throw new NullPointerException();
-        }
-    }
+    @Override
+    public void close() {}
 }

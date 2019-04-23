@@ -3,7 +3,7 @@ package view;
 /**
  * Interface - container for constant fields
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public interface MessageConstants {
     String MESSAGE_BUNDLE_NAME = "messages";
@@ -24,7 +24,6 @@ public interface MessageConstants {
     String CHOOSE_FEEDING_MESSAGE = "message.choose.feeding";
     String CHOOSE_TRANSPORT_MESSAGE = "message.choose.transport";
     String CHOOSE_DAYS_MESSAGE = "message.choose.days";
-    String INCORRECT_DAYS_CHOOSE_MESSAGE = "message.choose.days.incorrect";
     String USERS_ORDER_MESSAGE = "message.users.order";
     String USERS_ORDER_FEEDING = "message.users.feeding";
     String USERS_ORDER_TRANSPORT = "message.users.transport";
@@ -46,9 +45,9 @@ public interface MessageConstants {
     String SECOND_VARIANT = "2";
     String THIRD_VARIANT = "3";
     String FOURTH_VARIANT = "4";
-    String VARIANT_REGEX = "[1-4]{1}";
+    String FIFTH_VARIANT = "5";
     String DIGITS_REGEX = "[0-9]{1,2}";
-    String[] VARIANTS = {FIRST_VARIANT, SECOND_VARIANT, THIRD_VARIANT, FOURTH_VARIANT};
+    String[] VARIANTS = {FIRST_VARIANT, SECOND_VARIANT, THIRD_VARIANT, FOURTH_VARIANT, FIFTH_VARIANT};
 
     String ANTALYA = "destination.antalya";
     String HURGHADA = "destination.hurghada";
@@ -75,5 +74,6 @@ public interface MessageConstants {
     String TRAIN = "transport.train";
 
     Integer DAYS_MAXIMUM = 30;
-    Integer DAYS_MINIMUM = 1;
+    Integer FLOOR = 0;
+
 }

@@ -4,41 +4,44 @@ import model.dbimitation.Feeding;
 import model.dbimitation.Transport;
 import model.entities.trip.Purchaseable;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
 /**
  * Class for forming user`s order
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public class UsersTrip {
-    private Purchaseable trip;
-    private Feeding feeding;
-    private Transport transport;
+    private Optional<Purchaseable> trip;
+    private Optional<Feeding> feeding;
+    private Optional<Transport> transport;
     private Integer days;
 
     public UsersTrip() {
     }
 
     public UsersTrip(Purchaseable trip, Feeding feeding, Transport transport, Integer days) {
-        this.trip = isNotNull(trip);
-        this.feeding = feeding;
-        this.transport = transport;
+        this.trip = Optional.ofNullable(trip);
+        this.feeding = Optional.ofNullable(feeding);
+        this.transport = Optional.ofNullable(transport);
         this.days = days;
     }
 
-    public Purchaseable getTrip() {
+    public Optional<Purchaseable> getTrip() {
         return trip;
     }
 
     public void setTrip(Purchaseable trip) {
-        this.trip = trip;
+        this.trip = Optional.ofNullable(trip);
     }
 
-    public Feeding getFeeding() {
+    public Optional<Feeding> getFeeding() {
         return feeding;
     }
 
     public void setFeeding(Feeding feeding) {
-        this.feeding = feeding;
+        this.feeding = Optional.ofNullable(feeding);
     }
 
     public Integer getDays() {
@@ -49,26 +52,18 @@ public class UsersTrip {
         this.days = days;
     }
 
-    public Purchaseable isNotNull(Purchaseable tripToCheck) {
-        if (tripToCheck != null) {
-            return tripToCheck;
-        } else {
-            throw new NullPointerException();
-        }
-    }
-
-    public Transport getTransport() {
+    public Optional<Transport> getTransport() {
         return transport;
     }
 
     public void setTransport(Transport transport) {
-        this.transport = transport;
+        this.transport = Optional.ofNullable(transport);
     }
 
     public String totalPrice() {
-        Double totalPrice = trip.getPricePerDay() * days
-                            + (trip.getPricePerDay() * feeding.getAdditionalPrice() * days)
-                            + transport.getPrice();
+        BigDecimal totalPrice = BigDecimal.valueOf(trip.get().getPricePerDay() * days
+                            + (trip.get().getPricePerDay() * feeding.get().getAdditionalPrice() * days)
+                            + transport.get().getPrice());
         return totalPrice.toString();
     }
 }

@@ -12,20 +12,20 @@ import static view.MessageConstants.AEGEAN;
 /**
  * Enum with available relax trips
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public enum RelaxTripsAvailable {
     TURKEY(new RelaxTrip(ANTALYA , 80, MEDITERRANEAN)),
     EGYPT(new RelaxTrip(HURGHADA, 90, RED)),
     GREECE(new RelaxTrip(ATHENS, 120, AEGEAN));
 
-    private RelaxTrip relaxTrip;
+    private RelaxTrip trip;
 
     RelaxTripsAvailable(RelaxTrip relaxTrip) {
-        this.relaxTrip = relaxTrip;
+        this.trip = relaxTrip;
     }
 
-    public RelaxTrip getRelaxTrip() {
-        return relaxTrip;
+    public RelaxTrip getTrip() {
+        return trip;
     }
 }

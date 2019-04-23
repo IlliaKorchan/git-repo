@@ -3,7 +3,7 @@ package view;
 /**
  * Class, that contains methods for displaying messages
  * @author Illia Korchan
- * @version 1.0
+ * @version 1.1
  */
 public class View {
     public void printMessages(String ... messages) {
