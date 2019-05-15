@@ -20,4 +20,9 @@ public interface GlobalConstants {
     String CHANGE_LANGUAGE_MESSAGE = "Do you want to change language to Ukrainian? (y/n)";
     String INCORRECT_ANSWER = "Incorrect input! You can use \"y\" or \"n\".";
     String LOGIN_ALREADY_EXISTS_MESSAGE = "login.already.exists.message";
+
+    String GET_ALL_ACCOUNTS_QUERY = "SELECT user_name, user_login FROM registered_login";
+    String LOGIN_DB = "root";
+    String PASSWORD_DB = "root";
+    String URL_DB = "jdbc:mysql://localhost:3306/login?useSSL=false&serverTimezone=UTC";
 }

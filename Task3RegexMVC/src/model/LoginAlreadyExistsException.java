@@ -1,4 +1,4 @@
-package model.entity;
+package model;
 
 /**
  * Exception, which throws when user login is already registered

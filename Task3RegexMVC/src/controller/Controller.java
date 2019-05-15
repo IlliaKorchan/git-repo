@@ -1,11 +1,13 @@
 package controller;
 
 import model.Notebook;
-import model.entity.ExistingAccountsDB;
-import model.entity.LoginAlreadyExistsException;
+import model.entity.Account;
+import model.entity.DBConnector;
+import model.LoginAlreadyExistsException;
 import view.GlobalConstants;
 import view.View;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Scanner;
@@ -16,8 +18,9 @@ import java.util.Scanner;
  * @version 2.1.1
  */
 public class Controller implements GlobalConstants, RegexContainer {
-    View view;
-    Scanner in = new Scanner(System.in);
+    private View view;
+    private Scanner in = new Scanner(System.in);
+    private List<Account> accounts = new DBConnector().getAll();
     private static String MESSAGE_BUNDLE_NAME = "messages";
     public static ResourceBundle bundle;
 
@@ -80,7 +83,7 @@ public class Controller implements GlobalConstants, RegexContainer {
             if (checkValidation(valueToCheck, regex)) {
                 if (inputMessage.contains(bundle.getString(LOGIN))) {
                     try {
-                        ExistingAccountsDB.checkForExistence(valueToCheck);
+                        checkForExistence(valueToCheck);
                     } catch (LoginAlreadyExistsException e) {
                         view.printMessages(view.createMessage(bundle.getString(LOGIN),
                                                               valueToCheck,
@@ -110,6 +113,15 @@ public class Controller implements GlobalConstants, RegexContainer {
         } else {
             return false;
         }
+    }
+
+    public boolean checkForExistence(String login) throws LoginAlreadyExistsException {
+        for (Account account : accounts) {
+            if (account.getLogin().equals(login)) {
+                throw new LoginAlreadyExistsException();
+            }
+        }
+        return true;
     }
 
     /**
